@@ -1,0 +1,12 @@
+{
+  "name": "reallyworld-console",
+  "version": "1.0.0",
+  "description": "RW Site Control Console",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

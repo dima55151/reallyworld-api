@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RW Console — Управление сайтом</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0a0a0f;
+            --bg2: #0d1117;
+            --bg3: #161b22;
+            --border: #21262d;
+            --text: #e6edf3;
+            --muted: #8b949e;
+            --accent: #FFD700;
+            --danger: #ff6b6b;
+            --blue: #58a6ff;
+            --green: #00ff88;
+            --purple: #bc8cff;
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                linear-gradient(rgba(255,215,0,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,215,0,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: -1;
+        }
+        
+        /* ===== LOGIN ===== */
+        .login-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .login-box {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 0 60px rgba(255,215,0,0.1);
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .login-logo {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px; font-weight: 900; color: #1a1a00;
+            margin: 0 auto 16px;
+            box-shadow: 0 0 30px rgba(255,215,0,0.4);
+            font-family: 'Georgia', serif;
+            font-style: italic;
+        }
+        .login-box h2 {
+            background: linear-gradient(180deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 3px;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255,215,0,0.1);
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #1a1a00;
+            width: 100%;
+            justify-content: center;
+        }
+        .btn-primary:hover { box-shadow: 0 0 20px rgba(255,215,0,0.4); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-secondary { background: var(--bg3); color: var(--muted); border: 1px solid var(--border); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        
+        /* ===== CONSOLE ===== */
+        .console { display: none; }
+        .console.active { display: flex; min-height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--bg2);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+        .sidebar-logo {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: 900; color: #1a1a00;
+            margin: 0 auto 8px;
+            box-shadow: 0 0 20px rgba(255,215,0,0.3);
+            font-family: 'Georgia', serif;
+            font-style: italic;
+        }
+        .sidebar h2 {
+            background: linear-gradient(180deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+        .nav-section { padding: 16px 12px; flex: 1; }
+        .nav-title {
+            font-size: 10px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            padding: 0 12px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .nav-item:hover { background: rgba(255,215,0,0.05); color: var(--text); }
+        .nav-item.active {
+            background: rgba(255,215,0,0.1);
+            color: var(--accent);
+            box-shadow: inset 3px 0 0 var(--accent);
+        }
+        .sidebar-footer {
+            padding: 16px 12px;
+            border-top: 1px solid var(--border);
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .user-info:hover { background: rgba(255,215,0,0.05); }
+        .user-avatar {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; color: #1a1a00; font-size: 12px;
+        }
+        .user-details .username { font-size: 13px; font-weight: 600; }
+        .user-details .role { font-size: 11px; color: var(--muted); }
+        
+        /* Main content */
+        .main { flex: 1; margin-left: 260px; }
+        .topbar {
+            height: 60px;
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .topbar h1 { font-size: 18px; font-weight: 600; }
+        .content { padding: 30px; }
+        
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .stat-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+        .stat-icon.gold { background: rgba(255,215,0,0.1); }
+        .stat-icon.blue { background: rgba(88,166,255,0.1); }
+        .stat-icon.green { background: rgba(0,255,136,0.1); }
+        .stat-icon.red { background: rgba(255,107,107,0.1); }
+        .stat-value { font-size: 24px; font-weight: 700; }
+        .stat-label { font-size: 12px; color: var(--muted); }
+        
+        /* Tables */
+        .data-table {
+            width: 100%;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .data-table table { width: 100%; border-collapse: collapse; }
+        .data-table th {
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-weight: 600;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg3);
+        }
+        .data-table td {
+            padding: 12px 16px;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-admin { background: rgba(255,107,107,0.1); color: var(--danger); }
+        .badge-mod { background: rgba(210,153,34,0.1); color: var(--accent); }
+        .badge-user { background: rgba(0,255,136,0.1); color: var(--green); }
+        .badge-superadmin { background: rgba(255,215,0,0.15); color: #FFD700; }
+        
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 400px;
+        }
+        .modal h3 { margin-bottom: 16px; }
+        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+        
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .toast {
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            animation: slideIn 0.3s;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .toast-success { background: rgba(0,255,136,0.1); border: 1px solid var(--green); color: var(--green); }
+        .toast-error { background: rgba(255,107,107,0.1); border: 1px solid var(--danger); color: var(--danger); }
+        
+        /* Pages */
+        .page { display: none; }
+        .page.active { display: block; }
+        
+        /* Chat messages */
+        .msg {
+            padding: 10px;
+            background: var(--bg3);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .msg-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .msg-user { font-weight: 600; color: var(--accent); }
+        .msg-time { font-size: 11px; color: var(--muted); }
+        .msg-text { font-size: 14px; }
+    </style>
+</head>
+<body>
+    <!-- LOGIN -->
+    <div id="loginPage" class="login-page">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="login-logo">RW</div>
+                <h2>RW CONSOLE</h2>
+                <p style="color: var(--muted); margin-top: 8px;">Управление сайтом</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Токен доступа</label>
+                    <input type="password" class="form-input" id="tokenInput" placeholder="Введите токен RW" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Войти в консоль</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- CONSOLE -->
+    <div id="console" class="console">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">RW</div>
+                <h2>CONSOLE</h2>
+            </div>
+            <nav class="nav-section">
+                <div class="nav-title">Главное</div>
+                <div class="nav-item active" onclick="showPage('dashboard')">📊 Дашборд</div>
+                <div class="nav-item" onclick="showPage('users')">👥 Пользователи</div>
+                <div class="nav-item" onclick="showPage('chat')">💬 Чат</div>
+                <div class="nav-item" onclick="showPage('forum')">📋 Форум</div>
+                <div class="nav-item" onclick="showPage('bans')">⛔ Бан-лист</div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info" onclick="logout()">
+                    <div class="user-avatar">RW</div>
+                    <div class="user-details">
+                        <div class="username">RW</div>
+                        <div class="role">Выйти</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <div class="main">
+            <div class="topbar">
+                <h1 id="pageTitle">Дашборд</h1>
+                <span style="color: var(--muted); font-size: 12px;">https://rw-seho.onrender.com</span>
+            </div>
+            
+            <div class="content">
+                <!-- DASHBOARD -->
+                <div id="page-dashboard" class="page active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon gold">👥</div>
+                            <div>
+                                <div class="stat-value" id="statUsers">0</div>
+                                <div class="stat-label">Пользователей</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green">💬</div>
+                            <div>
+                                <div class="stat-value" id="statMessages">0</div>
+                                <div class="stat-label">Сообщений</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon blue">📋</div>
+                            <div>
+                                <div class="stat-value" id="statTopics">0</div>
+                                <div class="stat-label">Тем</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon red">⛔</div>
+                            <div>
+                                <div class="stat-value" id="statBans">0</div>
+                                <div class="stat-label">Банов</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 style="margin-bottom: 16px;">Быстрые действия</h3>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button class="btn btn-danger btn-sm" onclick="clearAllChat()">🗑 Очистить чат</button>
+                            <button class="btn btn-secondary btn-sm" onclick="showPage('users')">👥 Управление юзерами</button>
+                            <button class="btn btn-secondary btn-sm" onclick="showPage('forum')">📋 Создать тему</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- USERS -->
+                <div id="page-users" class="page">
+                    <div class="data-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Юзернейм</th>
+                                    <th>Email</th>
+                                    <th>Роль</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- CHAT -->
+                <div id="page-chat" class="page">
+                    <div style="margin-bottom: 16px;">
+                        <select class="form-input" id="chatRoomSelect" style="width: 200px; display: inline-block;">
+                            <option value="general">Общий</option>
+                            <option value="off-topic">Флудилка</option>
+                            <option value="memes">Мемы</option>
+                            <option value="help">Помощь</option>
+                        </select>
+                        <button class="btn btn-danger btn-sm" onclick="clearChatRoom()" style="float: right;">🗑 Очистить</button>
+                    </div>
+                    <div id="chatMessages"></div>
+                </div>
+                
+                <!-- FORUM -->
+                <div id="page-forum" class="page">
+                    <div style="margin-bottom: 20px;">
+                        <h3>Создать тему</h3>
+                        <div class="form-group">
+                            <label>Раздел</label>
+                            <select class="form-input" id="forumSectionSelect">
+                                <option value="1">📢 Новости</option>
+                                <option value="2">❓ FAQ</option>
+                                <option value="3">💬 Общение</option>
+                                <option value="4">🛡 Жалобы</option>
+                                <option value="5">💡 Идеи</option>
+                                <option value="6">🎨 Творчество</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Заголовок</label>
+                            <input type="text" class="form-input" id="forumTopicTitle" placeholder="Тема">
+                        </div>
+                        <div class="form-group">
+                            <label>Содержание</label>
+                            <textarea class="form-input" id="forumTopicContent" rows="4" placeholder="Описание темы"></textarea>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="createTopic()">Создать тему</button>
+                    </div>
+                </div>
+                
+                <!-- BANS -->
+                <div id="page-bans" class="page">
+                    <div class="data-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Юзернейм</th>
+                                    <th>Причина</th>
+                                    <th>Тип</th>
+                                    <th>Дата</th>
+                                    <th>Забанил</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bansTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MODAL -->
+    <div id="modal" class="modal-overlay">
+        <div class="modal">
+            <h3 id="modalTitle">Модальное окно</h3>
+            <div id="modalContent"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+                <button class="btn btn-primary btn-sm" id="modalConfirm">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- TOASTS -->
+    <div class="toast-container" id="toasts"></div>
+    
+    <script>
+        const API_URL = 'https://rw-seho.onrender.com';
+        let authToken = null;
+        let usersData = [];
+        
+        // ===== LOGIN =====
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const token = document.getElementById('tokenInput').value;
+            if (token === 'RW.RCON912398%#$#') {
+                authToken = token;
+                showConsole();
+                loadStats();
+                loadUsers();
+                showToast('Добро пожаловать, RW!', 'success');
+            } else {
+                showToast('Неверный токен', 'error');
+            }
+        });
+        
+        function showConsole() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('console').classList.add('active');
+        }
+        
+        function logout() {
+            authToken = null;
+            document.getElementById('loginPage').style.display = 'flex';
+            document.getElementById('console').classList.remove('active');
+        }
+        
+        // ===== NAVIGATION =====
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('page-' + page).classList.add('active');
+            event.target.classList.add('active');
+            
+            const titles = {
+                dashboard: 'Дашборд',
+                users: 'Пользователи',
+                chat: 'Чат',
+                forum: 'Форум',
+                bans: 'Бан-лист'
+            };
+            document.getElementById('pageTitle').textContent = titles[page];
+            
+            if (page === 'users') loadUsers();
+            if (page === 'chat') loadChat();
+            if (page === 'forum') loadForum();
+            if (page === 'bans') loadBans();
+        }
+        
+        // ===== API =====
+        async function api(method, endpoint, data = null) {
+            const options = {
+                method,
+                headers: {
+                    'Authorization': authToken,
+                    'Content-Type': 'application/json'
+                }
+            };
+            if (data) options.body = JSON.stringify(data);
+            
+            try {
+                const res = await fetch(`${API_URL}${endpoint}`, options);
+                const json = await res.json();
+                return json;
+            } catch (err) {
+                showToast('Ошибка API: ' + err.message, 'error');
+                return null;
+            }
+        }
+        
+        // ===== STATS =====
+        async function loadStats() {
+            const stats = await api('GET', '/api/stats');
+            if (stats) {
+                document.getElementById('statUsers').textContent = stats.users;
+                document.getElementById('statMessages').textContent = stats.messages;
+                document.getElementById('statTopics').textContent = stats.topics;
+                document.getElementById('statBans').textContent = stats.bans;
+            }
+        }
+        
+        // ===== USERS =====
+        async function loadUsers() {
+            const users = await api('GET', '/api/users');
+            if (!users) return;
+            usersData = users;
+            
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = users.map(u => `
+                <tr>
+                    <td>#${u.id}</td>
+                    <td><strong>${u.username}</strong></td>
+                    <td class="text-muted">${u.email}</td>
+                    <td><span class="badge badge-${u.role === 'superadmin' ? 'superadmin' : u.role}">${u.role}</span></td>
+                    <td>${u.banned ? '<span style="color: var(--danger);">⛔ Забанен</span>' : '<span style="color: var(--green);">✅</span>'}</td>
+                    <td>
+                        ${u.role !== 'superadmin' ? `
+                            <button class="btn btn-secondary btn-sm" onclick="changeRole(${u.id}, '${u.username}')">⬆ Модер</button>
+                            <button class="btn btn-danger btn-sm" onclick="banUser(${u.id}, '${u.username}')">⛔</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id}, '${u.username}')">🗑</button>
+                        ` : '<span style="color: var(--accent);">👑</span>'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        async function changeRole(userId, username) {
+            const role = confirm(`Повысить ${username} до модератора?`) ? 'moderator' : 'user';
+            const result = await api('POST', `/api/users/${userId}/role`, { role });
+            if (result && result.success) {
+                showToast(`Роль ${username} изменена на ${role}`, 'success');
+                loadUsers();
+            }
+        }
+        
+        async function banUser(userId, username) {
+            const reason = prompt('Причина бана:');
+            if (!reason) return;
+            const result = await api('POST', `/api/users/${userId}/ban`, { reason, type: 'forever' });
+            if (result && result.success) {
+                showToast(result.message, 'success');
+                loadUsers();
+                loadStats();
+            }
+        }
+        
+        async function deleteUser(userId, username) {
+            if (!confirm(`Удалить пользователя ${username}?`)) return;
+            const result = await api('DELETE', `/api/users/${userId}`);
+            if (result && result.success) {
+                showToast(result.message, 'success');
+                loadUsers();
+                loadStats();
+            }
+        }
+        
+        // ===== CHAT =====
+        async function loadChat() {
+            const room = document.getElementById('chatRoomSelect').value;
+            const msgs = await api('GET', `/api/messages?room=${room}`);
+            if (!msgs) return;
+            
+            const container = document.getElementById('chatMessages');
+            if (!msgs.length) {
+                container.innerHTML = '<div style="color: var(--muted);">Нет сообщений</div>';
+                return;
+            }
+            container.innerHTML = msgs.map(m => `
+                <div class="msg">
+                    <div class="msg-header">
+                        <span class="msg-user">${m.username}</span>
+                        <span class="msg-time">${new Date(m.timestamp).toLocaleString('ru-RU')}</span>
+                    </div>
+                    <div class="msg-text">${m.message}</div>
+                </div>
+            `).join('');
+        }
+        
+        async function clearChatRoom() {
+            if (!confirm('Очистить чат?')) return;
+            const room = document.getElementById('chatRoomSelect').value;
+            const result = await api('DELETE', `/api/messages/${room}`);
+            if (result && result.success) {
+                showToast(result.message, 'success');
+                loadChat();
+                loadStats();
+            }
+        }
+        
+        async function clearAllChat() {
+            if (!confirm('Очистить ВСЕ чаты?')) return;
+            const rooms = await api('GET', '/api/rooms');
+            if (rooms) {
+                for (const room of rooms) {
+                    await api('DELETE', `/api/messages/${room.id}`);
+                }
+                loadStats();
+                showToast('Все чаты очищены', 'success');
+            }
+        }
+        
+        // ===== FORUM =====
+        async function loadForum() {
+            // Nothing to load, just show create form
+        }
+        
+        async function createTopic() {
+            const sectionId = parseInt(document.getElementById('forumSectionSelect').value);
+            const title = document.getElementById('forumTopicTitle').value;
+            const content = document.getElementById('forumTopicContent').value;
+            
+            if (!title || !content) {
+                showToast('Заполните все поля', 'error');
+                return;
+            }
+            
+            const result = await api('POST', '/api/forum/topics', {
+                sectionId,
+                title,
+                userId: 0,
+                username: 'RW',
+                content
+            });
+            
+            if (result && result.success) {
+                showToast('Тема создана', 'success');
+                document.getElementById('forumTopicTitle').value = '';
+                document.getElementById('forumTopicContent').value = '';
+                loadStats();
+            }
+        }
+        
+        // ===== BANS =====
+        async function loadBans() {
+            const bans = await api('GET', '/api/bans');
+            if (!bans) return;
+            
+            const tbody = document.getElementById('bansTableBody');
+            tbody.innerHTML = bans.map(b => `
+                <tr>
+                    <td>#${b.id}</td>
+                    <td><strong>${b.username}</strong></td>
+                    <td>${b.reason}</td>
+                    <td>${b.type === 'forever' ? '🔴 Навсегда' : '🟡 Временный'}</td>
+                    <td>${new Date(b.createdAt).toLocaleDateString('ru-RU')}</td>
+                    <td>${b.bannedBy}</td>
+                </tr>
+            `).join('');
+        }
+        
+        // ===== MODAL =====
+        function openModal(title, content, onConfirm) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalContent').innerHTML = content;
+            document.getElementById('modal').classList.add('show');
+            document.getElementById('modalConfirm').onclick = () => {
+                onConfirm();
+                closeModal();
+            };
+        }
+        
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+        
+        // ===== TOAST =====
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toasts');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
